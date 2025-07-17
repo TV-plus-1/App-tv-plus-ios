@@ -67,21 +67,16 @@
       // مفتاح JW Player
       jwplayer.key = 'XSuP4qMl+9tK17QNb+4+th2Pm9AWgMO/cYH8CI0HGGr7bdjo';
 
-      // بيانات القناة
-      const streamUrl   = "https://shls-mbcaction-prod-dub-ak.akamaized.net/out/v1/8732f5132b274000bd59aee64255241c/index.mpd";
-      const drmKeyId    = "61500ce9a45342b897ba868f4fc59910";
-      const drmKeyValue = "93a1c516e6b4fc91fa88c59922f6d3d7";
-      const channelData = {
-        stream_url: streamUrl,
-        drm_keys: { [drmKeyId]: drmKeyValue }
-      };
+      // رابط m3u8 للقناة (استبدل بالرابط الحقيقي)
+      const streamUrl = "https://stream.supertv.gg:3001/supertv/sport/stv1/ch1/adaptive.m3u8";
+      const channelData = { stream_url: streamUrl };
 
       setupJWPlayer(channelData);
     });
 
     function setupJWPlayer(data) {
-      const playerInstance = jwplayer("player");
-      playerInstance.setup({
+      const player = jwplayer("player");
+      player.setup({
         width: "100%",
         height: "100%",
         controls: true,
@@ -103,13 +98,7 @@
         playlist: [{
           sources: [{
             file: data.stream_url,
-            type: "dash",
-            drm: {
-              clearkey: {
-                keyId: Object.keys(data.drm_keys)[0],
-                key:   Object.values(data.drm_keys)[0]
-              }
-            },
+            type: "hls",
             label: "HD"
           }]
         }]
@@ -121,9 +110,9 @@
           <!-- محتوى أيقونة التوسيع -->
         </svg>`;
 
-      playerInstance.on("ready", function () {
+      player.on("ready", function () {
         // زر التوسيع
-        playerInstance.addButton(
+        player.addButton(
           expandSvg,
           "توسيع الفيديو",
           function () {
@@ -134,50 +123,44 @@
           "jw-expandButton"
         );
 
-        // tabindex وأحداث التركيز
-        const controlBar = document.querySelector('.jw-controlbar');
-        if (controlBar) {
-          const buttons = controlBar.querySelectorAll('.jw-icon-inline, .jw-icon-tooltip');
-          buttons.forEach(btn => {
-            btn.setAttribute('tabindex', '0');
-            btn.addEventListener('focus', () => btn.classList.add('focused'));
-            btn.addEventListener('blur',  () => btn.classList.remove('focused'));
+        // إعداد tabindex وأحداث التركيز
+        const bar = document.querySelector('.jw-controlbar');
+        if (bar) {
+          const btns = bar.querySelectorAll('.jw-icon-inline, .jw-icon-tooltip');
+          btns.forEach(b => {
+            b.setAttribute('tabindex', '0');
+            b.addEventListener('focus', () => b.classList.add('focused'));
+            b.addEventListener('blur',  () => b.classList.remove('focused'));
           });
 
           // تنقل الأسهم
-          document.addEventListener('keydown', (evt) => {
-            const focusable = Array.from(controlBar.querySelectorAll('[tabindex="0"]'));
+          document.addEventListener('keydown', (e) => {
+            const focusable = Array.from(bar.querySelectorAll('[tabindex="0"]'));
             const idx = focusable.indexOf(document.activeElement);
-            let nextIdx;
-            if (evt.key === 'ArrowRight')      nextIdx = (idx + 1) % focusable.length;
-            else if (evt.key === 'ArrowLeft')  nextIdx = (idx - 1 + focusable.length) % focusable.length;
+            let next;
+            if (e.key === 'ArrowRight')      next = (idx + 1) % focusable.length;
+            else if (e.key === 'ArrowLeft')  next = (idx - 1 + focusable.length) % focusable.length;
             else return;
-            focusable[nextIdx].focus();
-            evt.preventDefault();
+            focusable[next].focus();
+            e.preventDefault();
           });
 
-          // التركيز على أول زر
-          const firstBtn = controlBar.querySelector('[tabindex="0"]');
-          if (firstBtn) firstBtn.focus();
+          // بدء التركيز على أول زر
+          const first = bar.querySelector('[tabindex="0"]');
+          if (first) first.focus();
         }
 
-        // حدث Fullscreen لقفل Landscape
-        playerInstance.on('fullscreen', async function(isFullscreen) {
-          if (isFullscreen) {
+        // قفل/فتح Landscape عند ملء الشاشة
+        player.on('fullscreen', async function(isFs) {
+          if (isFs) {
             if (screen.orientation && screen.orientation.lock) {
-              try {
-                await screen.orientation.lock('landscape');
-              } catch (e) {
-                console.warn('تعذّر قفل الوضع الأفقي:', e);
-              }
+              try { await screen.orientation.lock('landscape'); }
+              catch (e) { console.warn('تعذّر قفل الوضع الأفقي:', e); }
             }
           } else {
             if (screen.orientation && screen.orientation.unlock) {
-              try {
-                await screen.orientation.unlock();
-              } catch (e) {
-                console.warn('تعذّر فتح قفل الوضع:', e);
-              }
+              try { await screen.orientation.unlock(); }
+              catch (e) { console.warn('تعذّر فتح قفل الوضع:', e); }
             }
           }
         });
