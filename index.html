@@ -67,8 +67,8 @@
       // مفتاح JW Player
       jwplayer.key = 'XSuP4qMl+9tK17QNb+4+th2Pm9AWgMO/cYH8CI0HGGr7bdjo';
 
-      // رابط m3u8 للقناة (استبدل بالرابط الحقيقي)
-      const streamUrl = "https://github.com/Hoev/TV-Plus-Canal/blob/main/multi-Bein-1-quality.m3u8";
+      // رابط m3u8 للقناة
+      const streamUrl = "https://ml-pull-hwc.myco.io/MixBelAraby/hls/index.m3u8";
       const channelData = { stream_url: streamUrl };
 
       setupJWPlayer(channelData);
@@ -95,6 +95,14 @@
           margin: 20
         },
         aspectratio: "16:9",
+
+        // إضافة هيدر Referer لجميع طلبات HLS
+        hlsjsConfig: {
+          xhrSetup: function(xhr, url) {
+            xhr.setRequestHeader('Referer', 'https://myco.io/');
+          }
+        },
+
         playlist: [{
           sources: [{
             file: data.stream_url,
